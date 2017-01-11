@@ -22,7 +22,8 @@ module Nidobata
       netrc.save
     end
 
-    desc 'post ORG_SLUG ROOM_NAME [MESSAGE]', 'Post a message from stdin or 2nd argument.'
+    desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre]', 'Post a message from stdin or 2nd argument.'
+    option :pre, type: :boolean
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
       ensure_api_token
@@ -30,7 +31,14 @@ module Nidobata
       rooms = JSON.parse(http.get("/api/rooms?organization_slug=#{slug}&room_name=#{room_name}", default_headers).tap(&:value).body)
       room_id = rooms['rooms'][0]['id']
 
-      http.post('/api/messages', {room_id: room_id, source: message}.to_json, default_headers).value
+      payload =
+        if options[:pre]
+          {room_id: room_id, source: "<pre>\n#{message}</pre>", format: 'html'}
+        else
+          {room_id: room_id, source: message}
+        end
+
+      http.post('/api/messages', payload.to_json, default_headers).value
     end
 
     no_commands do

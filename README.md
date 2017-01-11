@@ -13,8 +13,14 @@
 ```
 $ nidobata init
 Email: hibariya@example.com
-Password: ⏎                                                                                                         hibariya@lerche:~/s/g/i/nidobata|master⚡*
-$ uname -a | nidobata post esm idobata-flood
+Password: ⏎
+$ uname -a | nidobata post my-org-slug my-room
+```
+
+`--pre` option surrounds input with `<pre></pre>`.
+
+```
+$ cat README.md | nidobata post my-org-slug my-room --pre
 ```
 
 ## Development
