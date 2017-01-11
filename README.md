@@ -1,28 +1,19 @@
 # Nidobata
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/nidobata`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+`nidobata` command reads stdin and posts it into idobata.io.
 
 ## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'nidobata'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
 
     $ gem install nidobata
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+$ nidobata init
+Email: hibariya@example.com
+Password: ⏎                                                                                                         hibariya@lerche:~/s/g/i/nidobata|master⚡*
+$ uname -a | nidobata post esm idobata-flood
+```
 
 ## Development
 

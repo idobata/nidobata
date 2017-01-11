@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
-require "nidobata"
+require 'nidobata'
+
+Nidobata::CLI.start ARGV
