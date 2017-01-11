@@ -4,6 +4,8 @@
 
 ![selection_553](https://cloud.githubusercontent.com/assets/43346/21834741/10668980-d7fb-11e6-9852-b587950e3982.png)
 
+Chat: [idobata/oss](https://idobata.io/#/organization/idobata/room/oss)
+
 ## Installation
 
     $ gem install nidobata
