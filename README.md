@@ -2,6 +2,8 @@
 
 `nidobata` command reads stdin and posts it into idobata.io.
 
+![selection_553](https://cloud.githubusercontent.com/assets/43346/21834741/10668980-d7fb-11e6-9852-b587950e3982.png)
+
 ## Installation
 
     $ gem install nidobata
