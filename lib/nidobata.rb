@@ -23,7 +23,7 @@ module Nidobata
     end
 
     desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre]', 'Post a message from stdin or 2nd argument.'
-    option :pre, type: :boolean
+    option :pre,   type: :boolean
     option :title, type: :string, default: nil
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
