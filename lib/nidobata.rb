@@ -24,6 +24,7 @@ module Nidobata
 
     desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre]', 'Post a message from stdin or 2nd argument.'
     option :pre, type: :boolean
+    option :title, type: :string, default: nil
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
       ensure_api_token
@@ -31,12 +32,9 @@ module Nidobata
       rooms = JSON.parse(http.get("/api/rooms?organization_slug=#{slug}&room_name=#{room_name}", default_headers).tap(&:value).body)
       room_id = rooms['rooms'][0]['id']
 
-      payload =
-        if options[:pre]
-          {room_id: room_id, source: "<pre>\n#{message}</pre>", format: 'html'}
-        else
-          {room_id: room_id, source: message}
-        end
+      message = build_message(options[:title], message, options[:pre])
+      payload = {room_id: room_id, source: message}
+      payload[:format] = 'html' if options[:pre]
 
       http.post('/api/messages', payload.to_json, default_headers).value
     end
@@ -83,6 +81,13 @@ module Nidobata
         Net::HTTP.new(IDOBATA_URL.host, IDOBATA_URL.port).tap {|http|
           http.use_ssl = IDOBATA_URL.scheme == 'https'
         }
+      end
+
+      def build_message(title, original_message, pre)
+        return original_message unless title || pre
+
+        message = pre ? "<pre>\n#{original_message}</pre>" : original_message
+        title ? "#{title}\n\n#{message}" : message
       end
     end
   end
