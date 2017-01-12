@@ -41,6 +41,29 @@ module Nidobata
       http.post('/api/messages', payload.to_json, default_headers).value
     end
 
+    desc 'rooms [ORG_SLUG]', 'list rooms'
+    def rooms(slug = nil)
+      ensure_api_token
+
+      if slug
+        rooms_url = "/api/rooms?organization_slug=#{slug}"
+        org_slug = -> _ { slug }
+      else
+        rooms_url = "/api/rooms"
+        orgs = JSON.parse(http.get("/api/organizations", default_headers).tap(&:value).body)
+        org_slug = -> id do
+          org = orgs["organizations"].detect {|org| org["id"] == id }
+          org["slug"]
+        end
+      end
+
+      rooms = JSON.parse(http.get(rooms_url, default_headers).tap(&:value).body)
+
+      rooms["rooms"].each do |room|
+        puts "#{org_slug[room["organization_id"]]}/#{room["name"]}"
+      end
+    end
+
     no_commands do
       private
 
