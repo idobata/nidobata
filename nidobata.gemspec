@@ -6,8 +6,8 @@ require 'nidobata/version'
 Gem::Specification.new do |spec|
   spec.name          = "nidobata"
   spec.version       = Nidobata::VERSION
-  spec.authors       = ["Hibariya"]
-  spec.email         = ["hibariya@gmail.com"]
+  spec.authors       = ["Hibariya", "Seiei Miyagi", "Mitsutaka Mimura"]
+  spec.email         = ["hibariya@gmail.com", "hanachin@gmail.com", "takkanm@gmail.com"]
 
   spec.summary       = %q{Read stdin and post it into idobata.io.}
   spec.homepage      = 'https://github.com/idobata/nidobata'
