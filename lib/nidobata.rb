@@ -25,9 +25,9 @@ module Nidobata
         netrc.save
       when Net::HTTPUnauthorized
         puts
-        $stderr.puts 'Authentication is fail. You may wrong Email or Password.'
+        abort 'Authentication is fail. You may wrong Email or Password.'
       else
-        $stderr.puts 'Initialize fail.'
+        abort 'Initialize fail.'
       end
     end
 
