@@ -93,7 +93,7 @@ module Nidobata
           if pre
             "<pre>\n#{original_message}</pre>"
           elsif syntax
-            "```#{syntax}\n#{original_message}\n```"
+            "~~~#{syntax}\n#{original_message}\n~~~"
           else
             original_message
           end
