@@ -27,7 +27,12 @@ module Nidobata
       when Net::HTTPUnauthorized
         abort 'Authentication failed. You may have entered wrong Email or Password.'
       else
-        abort 'Initialize fail.'
+        abort <<-EOS
+Failed to initialize.
+Status: #{res.code}
+Body:
+#{res.body}
+        EOS
       end
     end
 
