@@ -14,6 +14,7 @@ module Nidobata
     def init
       email = ask('Email:')
       password = ask('Password:', echo: false)
+      puts
       data = {grant_type: 'password', username: email, password: password}
       res = http.post('/oauth/token', data.to_json, {'Content-Type' => 'application/json'})
 
@@ -24,7 +25,6 @@ module Nidobata
         netrc[IDOBATA_URL.host] = email, token
         netrc.save
       when Net::HTTPUnauthorized
-        puts
         abort 'Authentication is fail. You may wrong Email or Password.'
       else
         abort 'Initialize fail.'
