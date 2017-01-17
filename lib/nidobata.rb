@@ -19,7 +19,7 @@ module Nidobata
 
       case res
       when Net::HTTPSuccess
-        token = JSON.parse(res.tap(&:value).body)['access_token']
+        token = JSON.parse(res.body)['access_token']
         netrc = Netrc.read
         netrc[IDOBATA_URL.host] = email, token
         netrc.save
