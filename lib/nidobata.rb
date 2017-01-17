@@ -14,12 +14,26 @@ module Nidobata
     def init
       email = ask('Email:')
       password = ask('Password:', echo: false)
+      puts
       data = {grant_type: 'password', username: email, password: password}
+      res = http.post('/oauth/token', data.to_json, {'Content-Type' => 'application/json'})
 
-      token = JSON.parse(http.post('/oauth/token', data.to_json, {'Content-Type' => 'application/json'}).tap(&:value).body)['access_token']
-      netrc = Netrc.read
-      netrc[IDOBATA_URL.host] = email, token
-      netrc.save
+      case res
+      when Net::HTTPSuccess
+        token = JSON.parse(res.body)['access_token']
+        netrc = Netrc.read
+        netrc[IDOBATA_URL.host] = email, token
+        netrc.save
+      when Net::HTTPUnauthorized
+        abort 'Authentication failed. You may have entered wrong Email or Password.'
+      else
+        abort <<-EOS
+Failed to initialize.
+Status: #{res.code}
+Body:
+#{res.body}
+        EOS
+      end
     end
 
     desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre] [--title]', 'Post a message from stdin or 2nd argument.'
