@@ -25,7 +25,7 @@ module Nidobata
         netrc[IDOBATA_URL.host] = email, token
         netrc.save
       when Net::HTTPUnauthorized
-        abort 'Authentication is fail. You may wrong Email or Password.'
+        abort 'Authentication failed. You may have entered wrong Email or Password.'
       else
         abort 'Initialize fail.'
       end
