@@ -34,6 +34,7 @@ module Nidobata
 
       message = build_message(message, options)
       payload = {room_id: room_id, source: message}
+      payload[:format] = 'markdown' if options[:pre]
 
       http.post('/api/messages', payload.to_json, default_headers).value
     end
