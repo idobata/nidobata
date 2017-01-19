@@ -19,17 +19,11 @@ Password: ⏎
 $ uname -a | nidobata post my-org-slug my-room
 ```
 
-`--pre` option surrounds input with `<pre></pre>`.
+`--pre` option surrounds input with triple tildes(`~~~`) and syntax name.
+:warning: It does not work when including triple tildes in input text :warning:
 
 ```
-$ cat README.md | nidobata post my-org-slug my-room --pre
-```
-
-`--syntax` option surronds input with triple tildes(`~~~`) with syntax name.
-:warning: It does not work when including triple backquotes or triple tildes in input text :warning:
-
-```
-$ cat lib/nidobata/version.rb | nidobata post my-org-slug my-room --syntax ruby
+$ cat README.md | nidobata post my-org-slug my-room --pre markdown
 ```
 
 ## Development

@@ -23,9 +23,8 @@ module Nidobata
     end
 
     desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre] [--title]', 'Post a message from stdin or 2nd argument.'
-    option :pre,    type: :boolean
+    option :pre,    type: :string, lazy_default: '', desc: 'can be used syntax highlight if argument exists'
     option :title,  type: :string, default: nil
-    option :syntax, type: :string, lazy_default: '', desc: 'can be used syntax highlight if not use pre option'
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
       ensure_api_token
@@ -35,7 +34,6 @@ module Nidobata
 
       message = build_message(message, options)
       payload = {room_id: room_id, source: message}
-      payload[:format] = 'html' if options[:pre]
 
       http.post('/api/messages', payload.to_json, default_headers).value
     end
@@ -87,16 +85,9 @@ module Nidobata
       def build_message(original_message, options)
         return original_message if options.empty?
 
-        title, pre, syntax = options.values_at(:title, :pre, :syntax)
+        title, pre = options.values_at(:title, :pre)
 
-        message =
-          if pre
-            "<pre>\n#{original_message}</pre>"
-          elsif syntax
-            "~~~#{syntax}\n#{original_message}\n~~~"
-          else
-            original_message
-          end
+        message = pre ? "~~~#{pre}\n#{original_message}\n~~~" : original_message
         title ? "#{title}\n\n#{message}" : message
       end
     end
