@@ -23,8 +23,8 @@ module Nidobata
     end
 
     desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre] [--title]', 'Post a message from stdin or 2nd argument.'
-    option :pre,    type: :string, lazy_default: '', desc: 'can be used syntax highlight if argument exists'
-    option :title,  type: :string, default: nil
+    option :pre,   type: :string, lazy_default: '', desc: 'can be used syntax highlight if argument exists'
+    option :title, type: :string, default: nil
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
       ensure_api_token
