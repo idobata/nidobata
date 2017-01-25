@@ -37,7 +37,7 @@ Body:
     end
 
     desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre] [--title]', 'Post a message from stdin or 2nd argument.'
-    option :pre,   type: :boolean
+    option :pre,   type: :string, lazy_default: '', desc: 'can be used syntax highlight if argument exists'
     option :title, type: :string, default: nil
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
@@ -46,9 +46,9 @@ Body:
       rooms = JSON.parse(http.get("/api/rooms?organization_slug=#{slug}&room_name=#{room_name}", default_headers).tap(&:value).body)
       room_id = rooms['rooms'][0]['id']
 
-      message = build_message(options[:title], message, options[:pre])
+      message = build_message(message, options)
       payload = {room_id: room_id, source: message}
-      payload[:format] = 'html' if options[:pre]
+      payload[:format] = 'markdown' if options[:pre]
 
       http.post('/api/messages', payload.to_json, default_headers).value
     end
@@ -97,10 +97,12 @@ Body:
         }
       end
 
-      def build_message(title, original_message, pre)
-        return original_message unless title || pre
+      def build_message(original_message, options)
+        return original_message if options.empty?
 
-        message = pre ? "<pre>\n#{original_message}</pre>" : original_message
+        title, pre = options.values_at(:title, :pre)
+
+        message = pre ? "~~~#{pre}\n#{original_message}\n~~~" : original_message
         title ? "#{title}\n\n#{message}" : message
       end
     end
