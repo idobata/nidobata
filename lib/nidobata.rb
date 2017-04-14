@@ -6,17 +6,48 @@ require 'netrc'
 require 'thor'
 require 'uri'
 
+require 'graphql/client'
+require 'graphql/client/http'
+
 module Nidobata
   class CLI < Thor
     IDOBATA_URL = URI.parse('https://idobata.io')
 
+    HTTP = GraphQL::Client::HTTP.new('https://api.idobata.io/graphql') {
+      def headers(context)
+        {'Authorization' => "Bearer #{context[:api_token]}"}
+      end
+    }
+
+    Schema = GraphQL::Client.load_schema(File.expand_path("#{__dir__}/../schema.json"))
+    Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
+
+    RoomListQuery = Client.parse(<<~QUERY)
+      query {
+        viewer {
+          rooms {
+            edges { node { id name organization { slug }
+          } } } } }
+    QUERY
+
+    CreateMessageMutation = Client.parse(<<~MUTATION)
+      mutation ($input: CreateMessageInput!) {
+        createMessage(input: $input)
+      }
+    MUTATION
+
     desc 'init', 'Init nidobata'
     def init
-      email = ask('Email:')
+      email    = ask('Email:')
       password = ask('Password:', echo: false)
       puts
+
+      http = Net::HTTP.new(IDOBATA_URL.host, IDOBATA_URL.port).tap {|h|
+        h.use_ssl = IDOBATA_URL.scheme == 'https'
+      }
+
       data = {grant_type: 'password', username: email, password: password}
-      res = http.post('/oauth/token', data.to_json, {'Content-Type' => 'application/json'})
+      res  = http.post('/oauth/token', data.to_json, {'Content-Type' => 'application/json'})
 
       case res
       when Net::HTTPSuccess
@@ -27,11 +58,11 @@ module Nidobata
       when Net::HTTPUnauthorized
         abort 'Authentication failed. You may have entered wrong Email or Password.'
       else
-        abort <<-EOS
-Failed to initialize.
-Status: #{res.code}
-Body:
-#{res.body}
+        abort <<~EOS
+          Failed to initialize.
+          Status: #{res.code}
+          Body:
+          #{res.body}
         EOS
       end
     end
@@ -43,36 +74,27 @@ Body:
       abort 'Message is required.' unless message
       ensure_api_token
 
-      rooms = JSON.parse(http.get("/api/rooms?organization_slug=#{slug}&room_name=#{room_name}", default_headers).tap(&:value).body)
-      room_id = rooms['rooms'][0]['id']
+      room_id = query(RoomListQuery).data.viewer.rooms.edges.map(&:node).find {|room|
+        room.organization.slug == slug && room.name == room_name
+      }.id
 
-      message = build_message(message, options)
-      payload = {room_id: room_id, source: message}
-      payload[:format] = 'markdown' if options[:pre]
+      payload = {
+        roomId: room_id,
+        source: build_message(message, options),
+        format: options[:pre] ? 'MARKDOWN' : 'PLAIN'
+      }
 
-      http.post('/api/messages', payload.to_json, default_headers).value
+      query CreateMessageMutation, variables: {input: payload}
     end
 
     desc 'rooms [ORG_SLUG]', 'list rooms'
     def rooms(slug = nil)
       ensure_api_token
 
-      if slug
-        rooms_url = "/api/rooms?organization_slug=#{slug}"
-        org_slug = -> _ { slug }
-      else
-        rooms_url = "/api/rooms"
-        orgs = JSON.parse(http.get("/api/organizations", default_headers).tap(&:value).body)
-        org_slug = -> id do
-          org = orgs["organizations"].detect {|org| org["id"] == id }
-          org["slug"]
-        end
-      end
-
-      rooms = JSON.parse(http.get(rooms_url, default_headers).tap(&:value).body)
-
-      rooms["rooms"].each do |room|
-        puts "#{org_slug[room["organization_id"]]}/#{room["name"]}"
+      query(RoomListQuery).data.viewer.rooms.edges.map(&:node).map {|room|
+        "#{room.organization.slug}/#{room.name}"
+      }.sort.each do |name|
+        puts name
       end
     end
 
@@ -87,14 +109,8 @@ Body:
         Netrc.read[IDOBATA_URL.host]&.password
       end
 
-      def default_headers
-        {'Content-Type' => 'application/json', 'Authorization' => "Bearer #{api_token}"}
-      end
-
-      def http
-        Net::HTTP.new(IDOBATA_URL.host, IDOBATA_URL.port).tap {|http|
-          http.use_ssl = IDOBATA_URL.scheme == 'https'
-        }
+      def query(q, variables: {}, context: {})
+        Client.query(q, variables: variables, context: {api_token: api_token}.merge(context))
       end
 
       def build_message(original_message, options)
