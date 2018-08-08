@@ -91,7 +91,10 @@ module Nidobata
     def rooms(slug = nil)
       ensure_api_token
 
-      query(RoomListQuery).data.viewer.rooms.edges.map(&:node).map {|room|
+      rooms = query(RoomListQuery).data.viewer.rooms.edges.map(&:node)
+      rooms.select! {|room| room.organization.slug == slug } if slug
+
+      rooms.map {|room|
         "#{room.organization.slug}/#{room.name}"
       }.sort.each do |name|
         puts name
