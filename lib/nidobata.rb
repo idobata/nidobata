@@ -67,9 +67,10 @@ module Nidobata
       end
     end
 
-    desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre] [--title]', 'Post a message from stdin or 2nd argument.'
-    option :pre,   type: :string, lazy_default: '', desc: 'can be used syntax highlight if argument exists'
-    option :title, type: :string, default: nil
+    desc 'post ORG_SLUG ROOM_NAME [MESSAGE] [--pre] [--title] [--format]', 'Post a message from stdin or 2nd argument.'
+    option :pre,    type: :string, lazy_default: '', desc: 'can be used syntax highlight if argument exists'
+    option :title,  type: :string, default: nil
+    option :format, type: :string, default: nil, desc: 'it is ignored if pre argument exists'
     def post(slug, room_name, message = $stdin.read)
       abort 'Message is required.' unless message
       ensure_api_token
@@ -81,7 +82,8 @@ module Nidobata
       payload = {
         roomId: room_id,
         source: build_message(message, options),
-        format: options[:pre] ? 'MARKDOWN' : 'PLAIN'
+        format: options[:pre] ? 'MARKDOWN' :
+                options[:format] ? options[:format] : 'PLAIN'
       }
 
       query CreateMessageMutation, variables: {input: payload}
